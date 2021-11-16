@@ -1,98 +1,108 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lfilloux <lfilloux@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/07 13:20:53 by lfilloux          #+#    #+#             */
-/*   Updated: 2021/11/13 13:45:54 by lfilloux         ###   ########lyon.fr   */
+/*   Created: 2021/11/07 13:21:29 by lfilloux          #+#    #+#             */
+/*   Updated: 2021/11/16 11:45:22 by lfilloux         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*reader(int fd)
+size_t	ft_strlen(const char *s)
 {
-	char	*buffer;
-	int		readv;
+	size_t	i;
 
-	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (!buffer)
-		return (NULL);
-	readv = read(fd, buffer, BUFFER_SIZE);
-	if (readv < 0)
-	{
-		free (buffer);
-		return (NULL);
-	}
-	buffer[readv] = '\0';
-	return (buffer);
+	if (!s)
+		return (0);
+	i = 0;
+	while (s[i])
+		i ++;
+	return (i);
 }
 
-static char	*continuereading(char *save, int fd)
+int	ft_strchr(const char *s, int c)
 {
-	char	*new_buffer;
+	size_t	i;
+
+	if (!s)
+		return (-1);
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] == (unsigned char)c)
+			return (i);
+		i ++;
+	}
+	return (-1);
+}
+
+char	*ft_substr(char const *s, unsigned int start, size_t len)
+{
+	size_t	i;
 	char	*dest;
 
-	dest = reader(fd);
+	i = 0;
+	if (!s)
+		return (NULL);
+	if (start >= ft_strlen(s))
+	{
+		dest = (char *)malloc(sizeof(char) * (ft_strlen(s) + 1));
+		if (!dest)
+			return (NULL);
+		while (s[i++])
+			dest[i] = s[i];
+		dest[i] = '\0';
+		return (dest);
+	}
+	if (ft_strlen(&s[start]) <= len)
+		len = ft_strlen(&s[start]);
+	dest = (char *)malloc(sizeof(char) * (len + 1));
 	if (!dest)
 		return (NULL);
-	if (!dest[0])
+	ft_strlcpy(dest, &s[start], len + 1);
+	return (dest);
+}
+
+size_t	ft_strlcpy(char	*dst, const char *src, size_t dstsize)
+{
+	size_t	i;
+
+	i = 0;
+	if (dstsize == 0)
+		return (ft_strlen(src));
+	while (src[i] && i < dstsize - 1)
 	{
-		free (dest);
-		return (save);
+		dst[i] = src[i];
+		i ++;
 	}
-	if (!save)
+	dst[i] = '\0';
+	return (ft_strlen(src));
+}
+
+char	*ft_strjoin(char const *s1, char const *s2)
+{
+	size_t	i;
+	size_t	j;
+	char	*dest;
+
+	i = 0;
+	j = 0;
+	if (!s1 || !s2)
+		return (NULL);
+	dest = (char *)malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)) + 1);
+	if (dest)
+	{
+		while (s1[i])
+			dest[j++] = s1[i++];
+		i = 0;
+		while (s2[i])
+			dest[j++] = s2[i++];
+		dest[j] = '\0';
 		return (dest);
-	new_buffer = ft_strjoin(save, dest);
-	free (save);
-	free (dest);
-	return (new_buffer);
-}
-
-static char	*findnl(char *save, char *line)
-{
-	char	*new_buffer;
-	size_t	size_len;
-
-	if (!save || !line)
-		return (NULL);
-	size_len = ft_strlen(line);
-	if (size_len == ft_strlen(save))
-	{
-		free (save);
-		return (NULL);
 	}
-	new_buffer = ft_substr(save, size_len, (ft_strlen(save) - size_len));
-	free (save);
-	return (new_buffer);
-}
-
-char	*get_next_line(int fd)
-{
-	static char	*save[4096];
-	char		*line;
-	size_t		lensize;
-
-	if (fd < 0 || BUFFER_SIZE < 1)
-		return (NULL);
-	line = 0;
-	if (ft_strchr(save[fd], '\n') == -1)
-	{
-		lensize = ft_strlen(save[fd]);
-		save[fd] = continuereading(save[fd], fd);
-		if (lensize == ft_strlen(save[fd]) && save[fd])
-			line = ft_substr(save[fd], 0, lensize);
-	}
-	if (!save[fd])
-		return (NULL);
-	if (!line && ft_strchr(save[fd], '\n') != -1)
-		line = ft_substr(save[fd], 0, (ft_strchr(save[fd], '\n') + 1));
-	if (line)
-	{
-		save[fd] = findnl(save[fd], line);
-		return (line);
-	}
-	return (get_next_line(fd));
+	return (NULL);
 }
